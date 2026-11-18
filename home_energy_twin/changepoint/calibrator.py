@@ -58,7 +58,12 @@ from .weather import series_period_features
 __all__ = ["ChangePointCalibrator"]
 
 
-_METHOD = "change-point (PRISM-lineage) baseline regression with residual bootstrap"
+_METHOD = (
+    "change-point (PRISM-lineage) baseline regression with residual bootstrap; "
+    "95 % parameter intervals from a residual bootstrap (measurement noise) and "
+    "a period-resampling bootstrap (change-point selection), widened by the "
+    "BIC change-point selection envelope"
+)
 
 #: Parameter names (relative to the fuel key) and their units.
 _PARAMETER_UNITS: dict[str, str] = {
@@ -404,8 +409,7 @@ class ChangePointCalibrator:
             low = min(low, value)
             high = max(high, value)
             method = (
-                f"{_METHOD}; change-point search over monthly billing periods; "
-                "95 % residual-bootstrap interval"
+                f"{_METHOD}; change-point search over monthly billing periods"
             )
             parameters[f"{group.name}.{name}"] = ParameterEstimate(
                 value=value,

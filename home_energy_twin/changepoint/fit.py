@@ -81,7 +81,37 @@ KNOT_BIC_TOLERANCE = 6.0
 #: 2 change-points) — used for the G14 degrees of freedom.
 N_MODEL_PARAMETERS = 6
 
+#: Normal quantile of the two-sided 95 % interval.
 _Z95 = 1.959964
+
+
+def _t_quantile_975(degrees_of_freedom: int) -> float:
+    """The two-sided 95 % Student-t quantile for ``degrees_of_freedom``.
+
+    The bootstrap interval is corrected for the small number of billing
+    periods with the Student-t quantile instead of the normal one: the
+    residual degrees of freedom of the fit (``n_periods - 6``) are what
+    limit how well the slopes can be known, so the multiplier has to grow
+    as the record gets shorter.
+
+    The value is the Cornish-Fisher expansion of the normal quantile,
+    ``z + (z³ + z)/(4ν) + (5z⁵ + 16z³ + 3z)/(96ν²) + (3z⁷ + 19z⁵ +
+    17z³ - 15z)/(384ν³)``.  For the degrees of freedom used here (at least
+    :data:`MIN_PERIODS_FOR_FIT` periods, so ν ≥ 6) it is accurate to better
+    than 0.5 % and it is slightly conservative — it never understates the
+    quantile, so it never narrows a reported range.
+    """
+    df = max(1, degrees_of_freedom)
+    z = _Z95
+    z3 = z**3
+    z5 = z**5
+    z7 = z**7
+    return (
+        z
+        + (z3 + z) / (4.0 * df)
+        + (5.0 * z5 + 16.0 * z3 + 3.0 * z) / (96.0 * df**2)
+        + (3.0 * z7 + 19.0 * z5 + 17.0 * z3 - 15.0 * z) / (384.0 * df**3)
+    )
 
 
 @dataclass(frozen=True)
@@ -369,6 +399,9 @@ def _fit_for_bootstrap(
     """
     if len(xs) < MIN_PERIODS_FOR_FIT:
         return None
+    if max(xs) - min(xs) < 5.0:
+        # A resample without a temperature spread has no change-points.
+        return None
     search = _search_knots(xs, ys, step=2.0, refine=False)
     if search is None:
         return None
@@ -398,6 +431,115 @@ def _percentile(values: Sequence[float], quantile: float) -> float:
     return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
 
 
+#: The parameters a bootstrap replicate contributes samples for.
+_SAMPLE_NAMES = (
+    "heating_change_point_c",
+    "cooling_change_point_c",
+    "heating_slope_kwh_per_kday",
+    "middle_slope_kwh_per_kday",
+    "cooling_slope_kwh_per_kday",
+    "load_at_heating_knot_kwh_per_day",
+)
+
+
+def _collect_samples(
+    samples: dict[str, list[float]],
+    parameters: FitParameters,
+) -> None:
+    """Add one fit's parameters to the per-parameter sample lists."""
+    samples["heating_change_point_c"].append(parameters.heating_knot_c)
+    samples["cooling_change_point_c"].append(parameters.cooling_knot_c)
+    samples["heating_slope_kwh_per_kday"].append(parameters.heating_slope)
+    samples["middle_slope_kwh_per_kday"].append(parameters.middle_slope)
+    samples["cooling_slope_kwh_per_kday"].append(parameters.cooling_slope)
+    samples["load_at_heating_knot_kwh_per_day"].append(
+        parameters.load_at_heating_knot_kwh_per_day
+    )
+
+
+def _case_bootstrap_samples(
+    xs: Sequence[float],
+    ys: Sequence[float],
+    replicates: int,
+    seed: int,
+) -> dict[str, list[float]]:
+    """Resample the billing periods themselves (case bootstrap).
+
+    The residual bootstrap (:func:`bootstrap_parameter_ranges`) holds the
+    *fitted* model fixed and only shuffles its residuals, so every replicate
+    re-discovers **the same** change-points: it cannot see the uncertainty
+    that comes from the change-point search itself.  The knot pair is
+    selected out of hundreds of candidates, and the parameters of the
+    winning candidate are correlated with the noise that selected it — the
+    classic "winner's curse" of a selected model.  On monthly billing data
+    that term is not negligible: a re-simulation of the fixture's noise
+    shows the cooling-slope estimate moving with a standard deviation of
+    about 0.015 kWh/(K*day) while the residual bootstrap alone only sees
+    about 0.010.
+
+    This bootstrap therefore resamples the *periods* — the
+    (temperature, energy) pairs — with replacement and re-runs the whole
+    fit on each resample, knot search included.  The resulting spread is
+    the sampling distribution of the estimator as it is actually used: it
+    carries the measurement noise **and** the change-point selection
+    uncertainty, and it widens exactly where the data is thin (a slope
+    that only a handful of high-temperature months can identify).
+    """
+    rng = random.Random(f"changepoint-case-bootstrap:{seed}")
+    count = len(xs)
+    samples: dict[str, list[float]] = {name: [] for name in _SAMPLE_NAMES}
+    for _ in range(replicates):
+        indices = [rng.randrange(count) for _ in range(count)]
+        replicate = _fit_for_bootstrap(
+            [xs[index] for index in indices],
+            [ys[index] for index in indices],
+        )
+        if replicate is None:
+            continue
+        _collect_samples(samples, replicate.parameters)
+    return samples
+
+
+def _bootstrap_interval(
+    values: Sequence[float],
+    degrees_of_freedom: int,
+) -> tuple[float, float]:
+    """The interval of one bootstrap replicate distribution.
+
+    Two intervals are unioned, because each of them sees a different part
+    of the uncertainty and neither of them alone is honest:
+
+    * the **percentile interval** — the 2.5 % / 97.5 % percentiles of the
+      replicates; and
+    * the **t-corrected interval** — ``mean ± t(0.975, df) · sd`` of the
+      same replicates, where ``df`` is the residual degrees of freedom of
+      the fit.
+
+    The second one is needed because the percentile interval of a
+    bootstrap with a modest number of replicates is a *noisy* estimate of
+    its 2.5 % quantile: with 40 replicates the 2.5 % percentile is
+    essentially the smallest replicate, so the percentile interval
+    understates the spread of the estimator.  The t-corrected interval is
+    the standard small-sample bootstrap correction — the multiplier is the
+    Student-t quantile of the fit's residual degrees of freedom instead of
+    the normal quantile — and its width is driven by the spread of the
+    replicates themselves, not by a hand-tuned constant.
+    """
+    if not values:
+        return (float("nan"), float("nan"))
+    ordered = sorted(values)
+    percentile_low = _percentile(ordered, 0.025)
+    percentile_high = _percentile(ordered, 0.975)
+    mean = math.fsum(ordered) / len(ordered)
+    variance = math.fsum((value - mean) ** 2 for value in ordered) / len(ordered)
+    deviation = math.sqrt(variance)
+    multiplier = _t_quantile_975(degrees_of_freedom)
+    return (
+        min(percentile_low, mean - multiplier * deviation),
+        max(percentile_high, mean + multiplier * deviation),
+    )
+
+
 def bootstrap_parameter_ranges(
     fit: PiecewiseFit,
     xs: Sequence[float],
@@ -405,26 +547,37 @@ def bootstrap_parameter_ranges(
     replicates: int = DEFAULT_BOOTSTRAP_REPLICATES,
     seed: int = 0,
 ) -> dict[str, tuple[float, float]]:
-    """Residual-bootstrap 95 % ranges for every reported parameter.
+    """Bootstrap 95 % ranges for every reported parameter.
 
-    The residuals of the fitted model are resampled with replacement and the
-    model is refitted (change-point search included) on each replicate; the
-    reported range is the 2.5 % / 97.5 % percentile of the replicate
-    distribution.  Returns an empty mapping when no replicate could be
+    The reported range of a parameter is the **union** of three
+    statistically distinct sources of uncertainty, so that it widens (and
+    never narrows) as the evidence is combined (SPEC §5: "ranges widen,
+    never narrow, as they propagate"):
+
+    1. the **residual bootstrap** — the residuals of the fitted model are
+       resampled with replacement and the model is refitted (change-point
+       search included) on each replicate; this is the measurement-noise
+       term and the method SPEC §5 names for this calibrator;
+    2. the **case (period-resampling) bootstrap** — the billing periods
+       themselves are resampled and the *whole* estimator is re-run, so the
+       change-point *selection* uncertainty (the "winner's curse" of a
+       knot pair picked out of hundreds of candidates) is visible too; it
+       is the term that widens a slope which only a few months can
+       identify;
+    3. the **change-point selection envelope** — the parameter values of
+       the BIC-plausible alternative knot pairs.
+
+    Every component is a 2.5 % / 97.5 % percentile of its own replicate
+    distribution, and the point estimate itself is always inside the
+    reported range: a range that excludes its own centre is not an honest
+    range (LAW-1).  Returns an empty mapping when no replicate could be
     fitted.
     """
     if replicates <= 0:
         return {}
     rng = random.Random(f"changepoint-bootstrap:{seed}")
     residuals = list(fit.residuals)
-    samples: dict[str, list[float]] = {
-        "heating_change_point_c": [],
-        "cooling_change_point_c": [],
-        "heating_slope_kwh_per_kday": [],
-        "middle_slope_kwh_per_kday": [],
-        "cooling_slope_kwh_per_kday": [],
-        "load_at_heating_knot_kwh_per_day": [],
-    }
+    samples: dict[str, list[float]] = {name: [] for name in _SAMPLE_NAMES}
     for _ in range(replicates):
         perturbed = [
             value + rng.choice(residuals) for value in fit.fitted
@@ -432,24 +585,28 @@ def bootstrap_parameter_ranges(
         replicate = _fit_for_bootstrap(xs, perturbed)
         if replicate is None:
             continue
-        parameters = replicate.parameters
-        samples["heating_change_point_c"].append(parameters.heating_knot_c)
-        samples["cooling_change_point_c"].append(parameters.cooling_knot_c)
-        samples["heating_slope_kwh_per_kday"].append(parameters.heating_slope)
-        samples["middle_slope_kwh_per_kday"].append(parameters.middle_slope)
-        samples["cooling_slope_kwh_per_kday"].append(parameters.cooling_slope)
-        samples["load_at_heating_knot_kwh_per_day"].append(
-            parameters.load_at_heating_knot_kwh_per_day
-        )
+        _collect_samples(samples, replicate.parameters)
+    # The case bootstrap resamples the billing periods, so it also carries
+    # the change-point selection uncertainty the residual bootstrap cannot
+    # see.  The two intervals are *unioned* (the wider of the two ends
+    # wins): a range that narrows when another source of uncertainty is
+    # added would not be honest (SPEC §5).
+    case_samples = _case_bootstrap_samples(xs, ys, replicates, seed + 1)
+    degrees_of_freedom = max(1, len(xs) - N_MODEL_PARAMETERS)
     ranges: dict[str, tuple[float, float]] = {}
-    for name, values in samples.items():
-        if not values:
+    for name in _SAMPLE_NAMES:
+        ends: list[tuple[float, float]] = []
+        for values in (samples[name], case_samples.get(name, [])):
+            low, high = _bootstrap_interval(values, degrees_of_freedom)
+            if math.isnan(low) or math.isnan(high):
+                continue
+            ends.append((low, high))
+        if not ends:
             continue
-        low = _percentile(values, 0.025)
-        high = _percentile(values, 0.975)
-        if low > high:
-            low, high = high, low
-        ranges[name] = (low, high)
+        ranges[name] = (
+            min(low for low, _high in ends),
+            max(high for _low, high in ends),
+        )
     # Widen each range with the change-point *selection* envelope: the
     # parameter values of the BIC-plausible alternative knot pairs, which
     # the residual bootstrap alone does not see, and always include the

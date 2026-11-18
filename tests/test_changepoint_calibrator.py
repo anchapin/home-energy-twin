@@ -32,9 +32,11 @@ from hypothesis import strategies as st
 from home_energy_twin.changepoint import (
     ChangePointCalibrator,
     Guideline14Thresholds,
+    bootstrap_parameter_ranges,
     cvrmse_pct,
     fit_change_point_baseline,
     nmbe_pct,
+    predict,
 )
 from home_energy_twin.types import (
     EnergyPoint,
@@ -495,16 +497,90 @@ def test_nmbe_and_cvrmse_follow_the_guideline14_definitions() -> None:
     )
 )
 def test_fit_reports_ranges_containing_the_point_value(offsets: list[float]) -> None:
-    """Whatever the data, a reported range always brackets its centre."""
+    """Whatever the data, a reported range always brackets its centre.
+
+    It is worth stating which invariants this asserts, because the
+    *obvious* candidate is not one of them: **the three branch slopes are
+    not ordered**.  Neither specs/SPEC.md nor the change-point model
+    requires the heating slope to be below the middle slope, or the middle
+    slope to be below the cooling slope: the baseline is an unconstrained
+    least-squares fit of a piecewise-linear function, and on data whose
+    true shape is a single straight line (as here) the branch slopes are
+    whatever least squares returns — the cooling branch included, and it
+    may legitimately tilt the other way.  An ordering assertion would
+    therefore test a property the design does not have (and that floating
+    point alone breaks: ``0.3000000000000001 <= 0.3`` is false).
+
+    What the design *does* guarantee, and what is asserted here:
+
+    * the two change-points are ordered — the knot search only accepts a
+      cooling knot above the heating knot;
+    * the reported parameters reproduce the fitted values through
+      ``predict`` — the report and the Guideline 14 metrics cannot
+      disagree about the model that was fitted;
+    * the fit is the least-squares solution at its change-points (the
+      residuals are orthogonal to every column of the design matrix), so
+      the point estimate really is the optimum of the criterion the
+      calibrator claims to minimise; and
+    * the fit is never worse than the mean-only baseline it nests; and
+    * every reported range brackets its own point value (LAW-1) — a range
+      that excludes its own centre is not an honest range.
+    """
     xs = [float(index) * 2.0 - 12.0 for index in range(12)]
     ys = [5.0 + 0.3 * x + offset for x, offset in zip(xs, offsets)]
     fit = fit_change_point_baseline(xs, ys)
-    if fit is None:
-        return
+    assert fit is not None, "twelve distinct temperatures are always fittable"
     parameters = fit.parameters
+
+    # The knot search only accepts a cooling knot above the heating knot.
     assert parameters.heating_knot_c < parameters.cooling_knot_c
-    assert parameters.heating_slope <= parameters.middle_slope
-    assert parameters.middle_slope <= parameters.cooling_slope
+
+    # The reported parameters reproduce the fitted values.
+    for x, fitted in zip(xs, fit.fitted):
+        assert math.isclose(
+            predict(parameters, x), fitted, rel_tol=1e-9, abs_tol=1e-9
+        ), f"predict disagrees with the fit at {x}"
+
+    # The fit is the least-squares solution at its knots: the residuals are
+    # orthogonal to the design matrix (constant, x - k1, (x - k1)+, (x - k2)+).
+    heating_knot = parameters.heating_knot_c
+    cooling_knot = parameters.cooling_knot_c
+    columns = (
+        [1.0] * len(xs),
+        [x - heating_knot for x in xs],
+        [max(0.0, x - heating_knot) for x in xs],
+        [max(0.0, x - cooling_knot) for x in xs],
+    )
+    for column in columns:
+        assert math.isclose(
+            math.fsum(
+                value * residual
+                for value, residual in zip(column, fit.residuals)
+            ),
+            0.0,
+            abs_tol=1e-6,
+        ), "the fit is not the least-squares solution at its knots"
+
+    # The model nests the mean-only baseline, so it cannot fit worse.
+    mean = math.fsum(ys) / len(ys)
+    mean_only_sse = math.fsum((y - mean) ** 2 for y in ys)
+    assert fit.sse <= mean_only_sse + 1e-9
+
+    # LAW-1: every reported range brackets its own point value.
+    ranges = bootstrap_parameter_ranges(fit, xs, ys, replicates=3, seed=11)
+    point_values = {
+        "heating_change_point_c": parameters.heating_knot_c,
+        "cooling_change_point_c": parameters.cooling_knot_c,
+        "heating_slope_kwh_per_kday": parameters.heating_slope,
+        "middle_slope_kwh_per_kday": parameters.middle_slope,
+        "cooling_slope_kwh_per_kday": parameters.cooling_slope,
+        "load_at_heating_knot_kwh_per_day": (
+            parameters.load_at_heating_knot_kwh_per_day
+        ),
+    }
+    for name, value in point_values.items():
+        low, high = ranges[name]
+        assert low <= value <= high, f"{name}: [{low}, {high}] excludes {value}"
 
 
 @settings(max_examples=10, deadline=None)
