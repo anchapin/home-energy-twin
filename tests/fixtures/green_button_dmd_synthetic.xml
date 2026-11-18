@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Synthetic Green Button "Download My Data" (DMD) export.
+
+  LAW-11: every value, identifier and timestamp in this file is synthetic.
+  No real meter, account, household or address appears here.
+
+  Shapes deliberately exercised:
+    * hourly IntervalBlock readings on an electricity import usage point;
+    * one estimated read (dataQuality = estimated);
+    * a one-hour GAP between two interval blocks (no 11:00 reading);
+    * two Summation billing periods with irregular lengths (a 28-day month and
+      a 743-hour DST-shortened month in America/New_York);
+    * a gas usage point with daily intervals;
+    * a net-meter usage point (readingType electricityNet).
+-->
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:g="http://greenbutton.com/schema/1.0">
+  <title>Synthetic Utility — Download My Data</title>
+  <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000001</id>
+  <updated>2026-04-01T00:00:00Z</updated>
+
+  <entry>
+    <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000002</id>
+    <title>Electricity import MeterReading</title>
+    <updated>2026-03-01T14:00:00Z</updated>
+    <content>
+      <g:UsagePoint id="urn:uuid:aaaaaaaa-0000-4000-8000-000000000001">
+        <g:UsagePointType>Electricity</g:UsagePointType>
+        <g:Meter>
+          <g:deviceID>SM-SYNTH-0001</g:deviceID>
+          <g:UsagePointType>Electricity</g:UsagePointType>
+        </g:Meter>
+        <g:MeterReading>
+          <g:readingType>electricity</g:readingType>
+          <g:unitOfMeasure>kWh</g:unitOfMeasure>
+          <g:source>Synthetic Meter Co</g:source>
+          <g:IntervalBlock duration="PT1H">
+            <g:IntervalReading startTime="2026-03-01T05:00:00Z" duration="PT1H">
+              <g:value>0.412</g:value>
+              <g:cost currency="USD">0.1030</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T06:00:00Z" duration="PT1H">
+              <g:value>0.355</g:value>
+              <g:cost currency="USD">0.0888</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T07:00:00Z" duration="PT1H">
+              <g:value>0.298</g:value>
+              <g:cost currency="USD">0.0745</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T08:00:00Z" duration="PT1H">
+              <g:value>0.301</g:value>
+              <g:cost currency="USD">0.0753</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T09:00:00Z" duration="PT1H">
+              <g:value>0.417</g:value>
+              <g:cost currency="USD">0.1043</g:cost>
+              <g:dataQuality>estimated</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T10:00:00Z" duration="PT1H">
+              <g:value>0.523</g:value>
+              <g:cost currency="USD">0.1308</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+          </g:IntervalBlock>
+          <g:IntervalBlock duration="PT1H">
+            <g:IntervalReading startTime="2026-03-01T12:00:00Z" duration="PT1H">
+              <g:value>0.489</g:value>
+              <g:cost currency="USD">0.1223</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T13:00:00Z" duration="PT1H">
+              <g:value>0.402</g:value>
+              <g:cost currency="USD">0.1005</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T14:00:00Z" duration="PT1H">
+              <g:value>0.377</g:value>
+              <g:cost currency="USD">0.0943</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+          </g:IntervalBlock>
+          <g:Summation startTime="2026-02-01T05:00:00Z" endTime="2026-03-01T05:00:00Z">
+            <g:value>512.400</g:value>
+            <g:cost currency="USD">128.1000</g:cost>
+            <g:dataQuality>actual</g:dataQuality>
+          </g:Summation>
+          <g:Summation startTime="2026-03-01T05:00:00Z" endTime="2026-04-01T04:00:00Z">
+            <g:value>604.900</g:value>
+            <g:cost currency="USD">151.2250</g:cost>
+            <g:dataQuality>actual</g:dataQuality>
+          </g:Summation>
+        </g:MeterReading>
+      </g:UsagePoint>
+    </content>
+  </entry>
+
+  <entry>
+    <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000003</id>
+    <title>Natural gas MeterReading</title>
+    <updated>2026-03-01T00:00:00Z</updated>
+    <content>
+      <g:UsagePoint id="urn:uuid:aaaaaaaa-0000-4000-8000-000000000002">
+        <g:UsagePointType>Gas</g:UsagePointType>
+        <g:Meter>
+          <g:deviceID>GM-SYNTH-0001</g:deviceID>
+          <g:UsagePointType>Gas</g:UsagePointType>
+        </g:Meter>
+        <g:MeterReading>
+          <g:readingType>gas</g:readingType>
+          <g:unitOfMeasure>CCF</g:unitOfMeasure>
+          <g:source>Synthetic Meter Co</g:source>
+          <g:IntervalBlock duration="PT24H">
+            <g:IntervalReading startTime="2026-03-01T05:00:00Z" duration="PT24H">
+              <g:value>1.240</g:value>
+              <g:cost currency="USD">0.9800</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-02T05:00:00Z" duration="PT24H">
+              <g:value>1.055</g:value>
+              <g:cost currency="USD">0.8340</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-03T05:00:00Z" duration="PT24H">
+              <g:value>0.918</g:value>
+              <g:cost currency="USD">0.7260</g:cost>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+          </g:IntervalBlock>
+        </g:MeterReading>
+      </g:UsagePoint>
+    </content>
+  </entry>
+
+  <entry>
+    <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000004</id>
+    <title>Net electricity MeterReading</title>
+    <updated>2026-03-01T14:00:00Z</updated>
+    <content>
+      <g:UsagePoint id="urn:uuid:aaaaaaaa-0000-4000-8000-000000000003">
+        <g:UsagePointType>Electricity</g:UsagePointType>
+        <g:Meter>
+          <g:deviceID>SM-SYNTH-0002</g:deviceID>
+          <g:UsagePointType>Electricity</g:UsagePointType>
+        </g:Meter>
+        <g:MeterReading>
+          <g:readingType>electricityNet</g:readingType>
+          <g:unitOfMeasure>kWh</g:unitOfMeasure>
+          <g:source>Synthetic Meter Co</g:source>
+          <g:IntervalBlock duration="PT1H">
+            <g:IntervalReading startTime="2026-03-01T05:00:00Z" duration="PT1H">
+              <g:value>0.402</g:value>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T06:00:00Z" duration="PT1H">
+              <g:value>0.350</g:value>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+          </g:IntervalBlock>
+        </g:MeterReading>
+      </g:UsagePoint>
+    </content>
+  </entry>
+</feed>
