@@ -1,0 +1,33 @@
+{
+  "house_id": "11111111-2222-3333-4444-555555555555",
+  "state_hash": "synthetic-state-hash",
+  "engine_ref": "openstudio-hpxml-calibration-0.1",
+  "hpxml_ref": {
+    "uri": "file:///synthetic/home.xml",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "parameters": {
+    "ua": {
+      "value": 0.5,
+      "low": 0.4,
+      "high": 0.6,
+      "unit": "W/K",
+      "method": "stub-engine"
+    }
+  },
+  "metrics": {
+    "nmbe_pct": 2.1,
+    "cvrmse_pct": 11.0,
+    "granularity": "billing_period",
+    "guideline14_pass": true
+  },
+  "calibration_window": {
+    "start_utc": "2026-01-01T00:00:00Z",
+    "end_utc": "2026-12-31T00:00:00Z"
+  },
+  "data_granularity": "billing_period",
+  "status": "valid",
+  "bpi2400_metrics": {
+    "cvrmse": 0.18
+  }
+}
