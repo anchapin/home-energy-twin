@@ -112,4 +112,6 @@ retrofit cost/incentive database.
 | `specs/SPEC.md` | Domain types, Protocols, numbered LAWS, property-test harness design |
 | `docs/ROADMAP.md` | Phases 0–5 with pre-registered Go/No-go gates |
 | `docs/ISSUES.md` | Starter issue list (≈17), Phase 0 dispatchable, Phase 1+ gated |
+| `docs/PRIVACY_AND_SAFETY.md` | Privacy & safety posture: local-first, no telemetry, read-only v1, no safety claims (RD-2, RD-3) |
+| `NOTICE` | Every external data source with its terms and attribution string (RD-11) |
 | `AGENTS.md` | Steering for coding workers on this repo |
