@@ -1,0 +1,284 @@
+NOTICE — external data sources and reused components
+home-energy-twin
+===============================================================================
+
+Purpose
+-------------------------------------------------------------------------------
+This file lists every external data source and reused component named in the
+repository docs, together with the terms stated for it in those docs and the
+attribution string that must be carried by any output derived from it.
+
+Authority for every statement below is in-repo only:
+  docs/RUBBER-DUCK-REVIEW.md  RD-2 (privacy posture), RD-3 (safety posture),
+                              RD-11 (data-licensing traps / NOTICE requirement)
+  docs/PLAN.md                §1 architecture, §3 adapter interfaces,
+                              §4 build-vs-reuse table, §6 privacy & security posture
+  specs/SPEC.md               LAW-6 (no telemetry by default), LAW-7 (read-only v1),
+                              LAW-8 (no safety claims), LAW-12 (provenance everywhere)
+
+Where the repo docs do not state the terms or the exact attribution wording for
+a source, this file says so explicitly rather than inventing it:
+
+    "terms not stated in repo docs — verify before use"
+
+Adding a data source to the project requires adding its entry here (RD-11).
+
+Rule (RD-11, LAW-12): the Open-Meteo server code is never embedded; Open-Meteo
+is called through its hosted API only. Any output that carries Open-Meteo or
+other CC BY 4.0 data must carry that source's attribution string.
+
+-------------------------------------------------------------------------------
+1. Weather data sources
+-------------------------------------------------------------------------------
+
+1.1 Open-Meteo (hosted API only)
+    Role:     WeatherProvider — observed + forecast weather for the twin and
+              retrofit comparison. Never used for calibration.
+    Terms:    free tier is NON-COMMERCIAL use; data is CC BY 4.0 (attribution
+              owed); the Open-Meteo *server code* is AGPLv3 and is NOT used —
+              hosted API only.
+    Attribution string: not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1 (weather adapters), §4 weather row;
+               docs/RUBBER-DUCK-REVIEW.md RD-11 (Open-Meteo bullet);
+               docs/ISSUES.md #11; specs/SPEC.md LAW-10.
+
+1.2 NWS (US National Weather Service)
+    Role:     WeatherProvider — first-class alternative provider behind the
+              same Protocol, so a commercial user can swap providers without
+              code changes.
+    Terms:    US public domain.
+    Attribution string: not applicable as a license obligation (public domain);
+              exact wording not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1, §4 weather row;
+               docs/RUBBER-DUCK-REVIEW.md RD-11 (mitigation bullet).
+
+1.3 NSRDB / EPW files
+    Role:     WeatherProvider — NSRDB (with EPW weather files) as a weather
+              source for calibration and the twin.
+    Terms:    stated in repo docs only as "free key"; precise licence and
+              attribution wording not stated in repo docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1 (weather adapter row), §4 weather row.
+
+1.4 TMY / AMY reanalysis weather (and EPW-derived archives)
+    Role:     Actual/reanalysis weather sliced to the data's exact period for
+              calibration and M&V; TMY/forecast weather only for forward
+              simulation and retrofit comparison (LAW-10).
+    Terms:    "TMY/AMY and ResStock-derived data carry their own attribution
+              terms" — terms not stated in repo docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/RUBBER-DUCK-REVIEW.md RD-11 (data-licensing bullet),
+               RD-6 (AMY lag); specs/SPEC.md LAW-10 and `source_kind` field;
+               docs/ISSUES.md #11.
+
+-------------------------------------------------------------------------------
+2. Utility / device data sources
+-------------------------------------------------------------------------------
+
+2.1 Green Button DMD (file upload)
+    Role:     DataSource — the day-one utility input (Green Button file
+              upload); also the format parsed in the Phase 0 spike.
+    Terms:    ESPI open standard; downstream aggregator terms may apply to
+              the user's own data.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1 (data adapters), §4 utility-data row;
+               docs/RUBBER-DUCK-REVIEW.md RD-6, RD-12b;
+               docs/ISSUES.md #5, #9.
+
+2.2 Green Button CMD (ESPI / OAuth, per-utility registration)
+    Role:     DataSource — optional accelerator for meter data; never a
+              prerequisite for onboarding.
+    Terms:    ESPI open standard; "aggregator contracts" — per-contract terms
+              govern caching, retention, and redistribution of the user's data
+              through the aggregator.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 utility-data row;
+               docs/RUBBER-DUCK-REVIEW.md RD-11 (aggregator bullet), RD-12b;
+               docs/ROADMAP.md (UtilityAPI/CMD integration is optional stretch).
+
+2.3 UtilityAPI (paid aggregator, optional)
+    Role:     DataSource — optional paid aggregator for meter data.
+    Terms:    paid service with per-contract terms (caching, retention and
+              redistribution are contractual, not free); UtilityAPI tokens are
+              credentials held in the OS/secret store, never in committed
+              config files.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1, §4 utility-data row;
+               docs/RUBBER-DUCK-REVIEW.md RD-2 (credentials bullet),
+               RD-11 (aggregator bullet), RD-12b.
+
+2.4 Other aggregators named in-repo (Arcadia, Bayou)
+    Role:     DataSource — named only as examples of aggregators whose data
+              comes with per-contract terms.
+    Terms:    per-contract terms (aggregator contracts) — terms not stated in
+              repo docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/RUBBER-DUCK-REVIEW.md RD-11 (aggregator bullet).
+
+2.5 ecobee CSV export (user-supplied file)
+    Role:     DataSource — thermostat interval data as an optional accelerator.
+    Terms:    ecobee's developer-key programme is closed (new keys stopped
+              2024-03-28) and "ecobee Donate Your Data is research-agreement
+              only"; terms for a user-supplied export — terms not stated in
+              repo docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/RUBBER-DUCK-REVIEW.md RD-12b (twice), RD-2 (occupancy
+               privacy); docs/ISSUES.md #13; docs/PLAN.md §2 (csv/ adapter).
+
+2.6 Home Assistant entities (thermostat / meter / CT)
+    Role:     DeviceBridge host — the twin reads thermostat, whole-home meter
+              and CT entities and publishes state, forecasts and alerts back
+              as HA entities. The add-on runs in a separate container.
+    Terms:    Apache-2.0; user-owned devices and user-owned data.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §1 (HA bridge), §4 smart-home row;
+               specs/SPEC.md LAW-7 (publish is state only);
+               docs/ISSUES.md #17.
+
+2.7 Homeowner-supplied utility bills, meter readings and house facts
+    Role:     the manual path is the product — typed/CSV monthly bills and
+              homeowner-known facts are the day-one inputs.
+    Terms:    user-owned data; never committed to the repo (synthetic
+              fixtures only, LAW-11).
+    Attribution string: not applicable (user-owned input).
+    Repo refs: docs/RUBBER-DUCK-REVIEW.md RD-12b; docs/PLAN.md §2
+               (SYNTHETIC ONLY fixtures); specs/SPEC.md LAW-11.
+
+-------------------------------------------------------------------------------
+3. House-description, measure and cost data
+-------------------------------------------------------------------------------
+
+3.1 HPXML schema (house description format)
+    Role:     the interchange format the onboarding → HPXML generator writes
+              and the engines read.
+    Terms:    "Open schema / NLR open".
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 house-description row; §1/§2 (HPXML generator);
+               docs/ISSUES.md #9.
+
+3.2 ResStock (priors for missing inputs, and upgrade measures)
+    Role:     fills gaps in the house description with priors (flagged as
+              priors in the output) and supplies retrofit measure definitions.
+    Terms:    "Open" / NLR open; "ResStock-derived data carries its own
+              attribution terms" — exact terms not stated in repo docs —
+              verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 (house-description and retrofit-measure rows);
+               docs/RUBBER-DUCK-REVIEW.md RD-11 (data-licensing bullet),
+               RD-1; docs/ISSUES.md #9, #15.
+
+3.3 BCL (Building Construction Library) retrofit measures
+    Role:     retrofit measure definitions, applied as HPXML transforms.
+    Terms:    "Open"; exact terms not stated in repo docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 retrofit-measure row; docs/ISSUES.md #15.
+
+3.4 Project cost / incentive database (built and curated by this project)
+    Role:     CostProvider — each entry carries source + as-of date + region.
+    Terms:    project data; each entry's own upstream terms must be recorded
+              with the entry.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 (cost / incentive data row), §3 (CostProvider
+               provenance); specs/SPEC.md LAW-12.
+
+-------------------------------------------------------------------------------
+4. Reused software components (attribution carried at the component level)
+-------------------------------------------------------------------------------
+These are code dependencies, listed here so that the component, its stated
+terms, and its attribution requirement are in one place. Heavy engines are
+invoked out-of-process behind adapters and are never linked into the core.
+
+4.1 OCHRE
+    Role:     live-twin stepping (Python RC simulator, HPXML in, HELICS-capable).
+    Terms:    BSD-3-like (NLR product).
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 live-twin row; docs/RUBBER-DUCK-REVIEW.md RD-1,
+               RD-7; docs/ISSUES.md #4, #13.
+
+4.2 OpenStudio-HPXML + EnergyPlus
+    Role:     authoritative (out-of-process) simulation for retrofit ranking.
+    Terms:    BSD-3-like.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 authoritative-simulation row;
+               docs/RUBBER-DUCK-REVIEW.md RD-1, RD-7; docs/ISSUES.md #15.
+
+4.3 OpenStudio-HPXML-Calibration
+    Role:     monthly-bill calibration (BPI-2400, v0.1, incomplete
+              implementation), invoked out-of-process.
+    Terms:    BSD-3-like.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 monthly-calibration row;
+               docs/RUBBER-DUCK-REVIEW.md RD-1, RD-7; docs/ISSUES.md #3, #8.
+
+4.4 Home Assistant
+    Role:     hosting / add-on container for the twin.
+    Terms:    Apache-2.0.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 smart-home row; docs/ISSUES.md #17.
+
+4.5 EMHASS
+    Role:     separate HA-side optimisation service; Phase 5 link, advisory
+              only, never linked into the core.
+    Terms:    MIT.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 (smart-home, optimisation rows);
+               docs/RUBBER-DUCK-REVIEW.md RD-11 (GPL/AGPL exclusion bullet);
+               docs/ISSUES.md #17; specs/SPEC.md §3 (no actuating method).
+
+4.6 PRISM / ASHRAE change-point regression (method reference)
+    Role:     thin change-point baseline calibrator built in this repo.
+    Terms:    literature (Fels; ASHRAE Guideline 14); a licence/terms
+              statement is not given in repo docs — terms not stated in repo
+              docs — verify before use.
+    Attribution string: terms not stated in repo docs — verify before use.
+    Repo refs: docs/PLAN.md §4 change-point row; docs/ISSUES.md #10.
+
+4.7 NILMTK (reference only)
+    Role:     reference for fault-detection ideas. NOT a dependency and not
+              installed or linked.
+    Terms:    not stated in repo docs — verify before use (not used).
+    Attribution string: not applicable — not a dependency.
+    Repo refs: docs/PLAN.md §4 fault-detection row.
+
+-------------------------------------------------------------------------------
+5. Explicitly excluded (listed so they are not added later by accident)
+-------------------------------------------------------------------------------
+
+5.1 BEopt — closed source; its search logic is reimplemented, its code is
+    never used.
+5.2 OpenHEMS — GPL-3.0; not a dependency.
+5.3 Open-Meteo server code — AGPLv3; hosted API only.
+5.4 REM/Rate, Snugg Pro, Sense, Bidgely — commercial.
+5.5 ecobee Donate Your Data, Pecan Street, utility AMI research sets — closed
+    or restricted datasets; not used for validation.
+
+    Repo refs: docs/PLAN.md §4 "Explicitly excluded" row;
+               docs/RUBBER-DUCK-REVIEW.md RD-1, RD-7, RD-11, RD-12b;
+               AGENTS.md ("no closed/copyleft contamination").
+
+-------------------------------------------------------------------------------
+6. Standing obligations that follow from the entries above
+-------------------------------------------------------------------------------
+
+  * LAW-6  No telemetry by default: no network call for analytics, crash
+           reporting or usage statistics. External calls happen only to
+           data/weather/device endpoints the user configured, and are
+           enumerable in config.
+  * LAW-7  v1 is read-only: no code path actuates HVAC or any device.
+  * LAW-8  No safety claims in any shipped output.
+  * LAW-12 Provenance everywhere: every series and cost figure carries source
+           + retrieved/as-of metadata and, where the source's terms require it,
+           the attribution string above. A number without provenance does not
+           reach a report.
+  * RD-2   Local-first reference deployment; no project-operated cloud; no
+           telemetry by default; encryption at rest for stored series; secrets
+           in the OS/secret store; retention + downsampling controls; one-action
+           house deletion; a threat-model document is required before Phase 2.
+  * RD-3   v1 is read-only/advisory, full stop; alert copy is constrained; no
+           safety-device claims anywhere; any future control needs a separate
+           owner-approved safety spec.
+  * RD-11  This NOTICE is the registry: adding a source requires adding its
+           entry.
+
+See docs/PRIVACY_AND_SAFETY.md for the posture statements these obligations
+back up.
