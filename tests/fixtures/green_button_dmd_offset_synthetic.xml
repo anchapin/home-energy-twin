@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Synthetic Green Button DMD export that uses LOCAL timestamps with an
+  explicit offset instead of UTC ("Z").
+
+  LAW-11: fully synthetic — no real account, meter or household.
+
+  Purpose: exercise the timestamp-basis detection and the UTC conversion at
+  ingest (LAW-5).  The instants here are identical to the UTC fixture's
+  first three hours of 2026-03-01 (05:00Z, 06:00Z, 07:00Z).
+-->
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:g="http://greenbutton.com/schema/1.0">
+  <title>Synthetic Utility — Download My Data (offset timestamps)</title>
+  <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000011</id>
+  <updated>2026-03-01T09:00:00-05:00</updated>
+
+  <entry>
+    <id>urn:uuid:0f0f0f0f-0000-4000-8000-000000000012</id>
+    <title>Electricity import MeterReading (offset)</title>
+    <updated>2026-03-01T02:00:00-05:00</updated>
+    <content>
+      <g:UsagePoint id="urn:uuid:aaaaaaaa-0000-4000-8000-000000000011">
+        <g:UsagePointType>Electricity</g:UsagePointType>
+        <g:MeterReading>
+          <g:readingType>electricity</g:readingType>
+          <g:unitOfMeasure>kWh</g:unitOfMeasure>
+          <g:source>Synthetic Meter Co</g:source>
+          <g:IntervalBlock duration="PT1H">
+            <g:IntervalReading startTime="2026-03-01T00:00:00-05:00" duration="PT1H">
+              <g:value>0.412</g:value>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T01:00:00-05:00" duration="PT1H">
+              <g:value>0.355</g:value>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+            <g:IntervalReading startTime="2026-03-01T02:00:00-05:00" duration="PT1H">
+              <g:value>0.298</g:value>
+              <g:dataQuality>actual</g:dataQuality>
+            </g:IntervalReading>
+          </g:IntervalBlock>
+          <g:Summation startTime="2026-02-01T00:00:00-05:00" endTime="2026-03-01T00:00:00-05:00">
+            <g:value>512.400</g:value>
+            <g:dataQuality>actual</g:dataQuality>
+          </g:Summation>
+        </g:MeterReading>
+      </g:UsagePoint>
+    </content>
+  </entry>
+</feed>
