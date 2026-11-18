@@ -3,7 +3,7 @@
 **A calibrated energy model of your house, then a digital twin that keeps running.**
 
 `anchapin/home-energy-twin` (planned) · Python · License: **Apache-2.0 (planned)**
-Status: **SPEC PHASE — no implementation yet.** See `specs/SPEC.md` (awaiting owner approval),
+Status: **SPEC APPROVED 2026-11-18, Phase 0/1 starting.** See `specs/SPEC.md`,
 `docs/PLAN.md`, `docs/ROADMAP.md`, and `docs/RUBBER-DUCK-REVIEW.md` before writing code.
 
 ## The pitch

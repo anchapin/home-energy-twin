@@ -5,10 +5,10 @@ This file is the short, binding version.
 
 ## Status gate — read first
 
-**GREENFIELD: AWAITING SPEC APPROVAL.**
-Until Alex (repo owner) records approval of `specs/SPEC.md`, **only Phase 0 issues are
-dispatchable** (see `docs/ISSUES.md`). Phase 1+ issues are filed for planning only —
-do not start them, do not scaffold toward them, do not "get ahead" on them.
+**SPEC APPROVED by Alex on 2026-11-18.**
+Phase 0 and Phase 1 issues are dispatchable (see `docs/ISSUES.md`). Phase 2+ issues
+stay gated on their roadmap phase gates (Phase 1 gate before Phase 2 work, and so on).
+Do not "get ahead" on a later phase.
 
 ## Hard rules
 

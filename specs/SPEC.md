@@ -1,10 +1,10 @@
 # SPEC — home-energy-twin core contract
 
-> **STATUS: GREENFIELD — AWAITING SPEC APPROVAL.**
-> This spec must be approved by Alex (repo owner) before any implementation work beyond
-> Phase 0 spikes begins. **Implementation workers do not edit anything under `specs/`
-> without Alex's explicit approval.** If implementation reveals a spec error, file an
-> issue describing it; do not silently diverge.
+> **STATUS: APPROVED by Alex (repo owner) on 2026-11-18.**
+> Implementation may proceed per docs/ROADMAP.md phase gates. **Implementation workers
+> do not edit anything under `specs/` without Alex's explicit approval.** If
+> implementation reveals a spec error, file an issue describing it; do not silently
+> diverge.
 >
 > Conventions: Python, pydantic v2 models, `mypy --strict` clean. All quantities carry
 > explicit units in field names or types. All timestamps are UTC internally (LAW-5).
