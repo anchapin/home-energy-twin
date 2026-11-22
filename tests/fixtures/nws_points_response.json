@@ -1,0 +1,30 @@
+{
+  "@id": "https://api.weather.gov/points/42.3600,-71.0600",
+  "id": "https://api.weather.gov/points/42.3600,-71.0600",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-71.0623, 42.3612]
+  },
+  "properties": {
+    "@id": "https://api.weather.gov/points/42.3600,-71.0600",
+    "cwa": "https://api.weather.gov/offices/BOX",
+    "gridId": "BOX",
+    "gridX": 51,
+    "gridY": 62,
+    "forecast": "https://api.weather.gov/gridpoints/BOX/51,62/forecast",
+    "forecastHourly": "https://api.weather.gov/gridpoints/BOX/51,62/forecast/hourly",
+    "observationStations": [
+      "https://api.weather.gov/stations/KBOS",
+      "https://api.weather.gov/stations/KBDR"
+    ],
+    "relativeLocation": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-71.0623, 42.3612]
+      },
+      "properties": {}
+    },
+    "timeZone": "America/New_York"
+  }
+}
