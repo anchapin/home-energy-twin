@@ -1,0 +1,14 @@
+{
+  "@id": "https://api.weather.gov/stations/KBDR",
+  "id": "https://api.weather.gov/stations/KBDR",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-72.6887, 41.9392]
+  },
+  "properties": {
+    "@id": "https://api.weather.gov/stations/KBDR",
+    "stationIdentifier": "KBDR",
+    "name": "Bradford Regional",
+    "timeZone": "America/New_York"
+  }
+}

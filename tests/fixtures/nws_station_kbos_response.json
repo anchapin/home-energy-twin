@@ -1,0 +1,14 @@
+{
+  "@id": "https://api.weather.gov/stations/KBOS",
+  "id": "https://api.weather.gov/stations/KBOS",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-71.0106, 42.3606]
+  },
+  "properties": {
+    "@id": "https://api.weather.gov/stations/KBOS",
+    "stationIdentifier": "KBOS",
+    "name": "Boston Logan International",
+    "timeZone": "America/New_York"
+  }
+}

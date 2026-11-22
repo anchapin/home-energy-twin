@@ -1,0 +1,60 @@
+{
+  "@id": "https://api.weather.gov/gridpoints/BOX/51,62/forecast",
+  "id": "https://api.weather.gov/gridpoints/BOX/51,62/forecast",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": []
+  },
+  "properties": {
+    "updated": "2024-06-01T05:00:00+00:00",
+    "units": "standard",
+    "forecastGenerator": "NWS Boston MA",
+    "periods": [
+      {
+        "number": 1,
+        "name": "Today",
+        "startTime": "2024-06-01T06:00:00+00:00",
+        "endTime": "2024-06-01T18:00:00+00:00",
+        "isDaytime": true,
+        "temperature": {"value": 26.1, "unitCode": "wmoUnit:degC"},
+        "relativeHumidity": {"value": 58.0, "unitCode": "wmoUnit:percent"},
+        "windSpeed": {"value": 14.8, "unitCode": "wmoUnit:km_h-1"},
+        "probabilityOfPrecipitation": {"value": 10.0, "unitCode": "wmoUnit:percent"}
+      },
+      {
+        "number": 2,
+        "name": "Tonight",
+        "startTime": "2024-06-01T18:00:00+00:00",
+        "endTime": "2024-06-02T06:00:00+00:00",
+        "isDaytime": false,
+        "temperature": {"value": 17.4, "unitCode": "wmoUnit:degC"},
+        "relativeHumidity": {"value": 74.0, "unitCode": "wmoUnit:percent"},
+        "windSpeed": {"value": 9.3, "unitCode": "wmoUnit:km_h-1"},
+        "probabilityOfPrecipitation": {"value": 20.0, "unitCode": "wmoUnit:percent"}
+      },
+      {
+        "number": 3,
+        "name": "Sunday",
+        "startTime": "2024-06-02T06:00:00+00:00",
+        "endTime": "2024-06-02T18:00:00+00:00",
+        "isDaytime": true,
+        "temperature": {"value": 24.9, "unitCode": "wmoUnit:degC"},
+        "relativeHumidity": {"value": 61.0, "unitCode": "wmoUnit:percent"},
+        "windSpeed": {"value": 12.6, "unitCode": "wmoUnit:km_h-1"},
+        "probabilityOfPrecipitation": {"value": 5.0, "unitCode": "wmoUnit:percent"}
+      },
+      {
+        "number": 4,
+        "name": "Sunday Night",
+        "startTime": "2024-06-02T18:00:00+00:00",
+        "endTime": "2024-06-03T06:00:00+00:00",
+        "isDaytime": false,
+        "temperature": {"value": 16.8, "unitCode": "wmoUnit:degC"},
+        "relativeHumidity": {"value": 77.0, "unitCode": "wmoUnit:percent"},
+        "windSpeed": {"value": 7.4, "unitCode": "wmoUnit:km_h-1"},
+        "probabilityOfPrecipitation": {"value": 15.0, "unitCode": "wmoUnit:percent"}
+      }
+    ]
+  }
+}
